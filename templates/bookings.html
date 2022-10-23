@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="min-h-screen bg-gray-700">
+    <div class="flex flex-col min-h-screen bg-gray-700">
+        <div class="bg-gray-800 ">
+            <header class="py-8 md:mt-16">
+                <div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8 xl:flex xl:items-center xl:justify-between">
+                    <div class="flex-1 min-w-0">
+                        <h1 class="mt-2 text-2xl font-bold leading-7 text-white sm:text-3xl sm:truncate">Zainul Ariffin
+                        </h1>
+                    </div>
+                </div>
+            </header>
+        </div>
+
+        <div class="flex flex-col pb-24">
+            <div class="grid px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+                <p class="px-4 pt-6 text-2xl font-medium text-gray-200 sm:px-6 lg:px-8">My Bookings</p>
+                <div id="matchmake-section" class="flex flex-grow" style="display: block">
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+<div class="relative z-10 hidden" id="modal-div" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 hidden transition-opacity bg-gray-500 bg-opacity-75" id="modal-backdrop"></div>
+    <div class="fixed inset-0 z-10 overflow-y-auto">
+        <div class="flex items-end justify-center min-h-full p-4 text-center sm:items-center sm:p-0">
+            <div id="modal"
+                class="relative hidden overflow-hidden text-left transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:w-full sm:max-w-lg">
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // close-modal on click
+
+    function openModal(roomid) {
+        var myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+        myHeaders.append("Cookie", "csrftoken=QR23xx5TxOqewhyR3DmwfFfj50EvtQ8CRjn1PhJ5Q7jEzngTqbGoaMbPO3A8Vk6f");
+
+        var raw = JSON.stringify({
+            "roomid": roomid
+        });
+
+        var requestOptions = {
+            method: 'POST',
+            headers: myHeaders,
+            body: raw,
+            redirect: 'follow'
+        };
+
+        fetch("/getSpecificRoom", requestOptions)
+            .then(response => response.json())
+            .then(result => {
+
+                console.log(result['rooms'][0])
+
+                room = ''
+
+                room += `
+            <div class="px-4 pt-5 pb-4 bg-white sm:p-6 sm:pb-4">
+                    <div class="overflow-hidden bg-white shadow sm:rounded-lg">
+                        <div class="px-4 py-5 sm:px-6">
+                            <h3 class="text-lg font-medium leading-6 text-gray-900">Room Details</h3>
+                            <p class="max-w-2xl mt-1 text-sm text-gray-500">Personal details and application.</p>
+                        </div>
+                        <div class="px-4 py-5 border-t border-gray-200 sm:px-6">
+                            <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
+                                <div class="sm:col-span-1">
+                                    <dt class="text-sm font-medium text-gray-500">Name</dt>
+                                    <dd class="mt-1 text-sm text-gray-900">`+ result['rooms'][0]['creator'].name + `</dd>
+                                </div>
+                                <div class="sm:col-span-1">
+                                    <dt class="text-sm font-medium text-gray-500">Rating</dt>
+                                    <dd class="mt-1 text-sm text-gray-900">`+ result['rooms'][0]['creator'].mmr + `</dd>
+                                </div>
+                                <div class="sm:col-span-1">
+                                    <dt class="text-sm font-medium text-gray-500">Age</dt>
+                                    <dd class="mt-1 text-sm text-gray-900">`+ result['rooms'][0]['creator'].age + `</dd>
+                                </div>
+                                <div class="sm:col-span-1">
+                                    <dt class="text-sm font-medium text-gray-500">Gender</dt>
+                                    <dd class="mt-1 text-sm text-gray-900">`+ result['rooms'][0]['creator'].gender + `</dd>
+                                </div>
+                            </dl>
+                        </div>`
+
+                for (let i = 0; i < result['rooms'][0]['joined'].length; i++) {
+                    console.log(result['rooms'][0]['joined'][i])
+                    room += `<div class="px-4 py-5 border-t border-gray-200 sm:px-6">
+                            <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
+                                <div class="sm:col-span-1">
+                                    <dt class="text-sm font-medium text-gray-500">Name</dt>
+                                    <dd class="mt-1 text-sm text-gray-900">`+ result['rooms'][0]['joined'][i].name + `</dd>
+                                </div>
+                                <div class="sm:col-span-1">
+                                    <dt class="text-sm font-medium text-gray-500">Rating</dt>
+                                    <dd class="mt-1 text-sm text-gray-900">`+ result['rooms'][0]['joined'][i].mmr + `</dd>
+                                </div>
+                                <div class="sm:col-span-1">
+                                    <dt class="text-sm font-medium text-gray-500">Age</dt>
+                                    <dd class="mt-1 text-sm text-gray-900">`+ result['rooms'][0]['joined'][i].age + `</dd>
+                                </div>
+                                <div class="sm:col-span-1">
+                                    <dt class="text-sm font-medium text-gray-500">Gender</dt>
+                                    <dd class="mt-1 text-sm text-gray-900">`+ result['rooms'][0]['joined'][i].gender + `</dd>
+                                </div>
+                            </dl>
+                        </div>`
+                }
+                room += `</div>
+                </div>
+                <div class="px-4 py-3 bg-gray-50 sm:flex sm:flex-row-reverse sm:px-6">
+                    <button type="button" id="close-modal"
+                        class="inline-flex justify-center w-full px-4 py-2 mt-3 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">Close</button>
+                </div>
+            `
+                document.getElementById("modal").innerHTML = room
+
+                document.getElementById("modal").classList.remove("hidden");
+                document.getElementById("modal-backdrop").classList.remove("hidden");
+                // modal-div
+                document.getElementById("modal-div").classList.remove("hidden");
+                document.getElementById("close-modal").addEventListener("click", function () {
+                    document.getElementById("modal").classList.add("hidden");
+                    document.getElementById("modal-backdrop").classList.add("hidden");
+                    // modal-div
+                    document.getElementById("modal-div").classList.add("hidden");
+                });
+            })
+            .catch(error => console.log('error', error));
+
+
+    }
+
+
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+    myHeaders.append("Cookie", "csrftoken=QR23xx5TxOqewhyR3DmwfFfj50EvtQ8CRjn1PhJ5Q7jEzngTqbGoaMbPO3A8Vk6f");
+
+    var raw = JSON.stringify({
+        "userid": "6349c0439218286ad81f6575"
+    });
+
+    var requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: raw,
+        redirect: 'follow'
+    };
+    function getLogo(activity) {
+        if (activity == "soccer") {
+            return "https://aux.iconspalace.com/uploads/football-icon-256-1281892144.png"
+        }
+        else if (activity == "badminton") {
+            return "https://cdn-icons-png.flaticon.com/512/447/447840.png"
+        }
+    }
+    fetch("/getMyRoom", requestOptions)
+        .then(response => response.json())
+        .then(result => {
+            room = ''
+            console.log(result['rooms'].length)
+            if (result['rooms'].length == 0) {
+                room += `<div class="grid content-center p-8 px-4 mx-auto bg-gray-200 max-w-7xl sm:px-6 lg:px-8 rounded-2xl">
+                        <div class="text-center">
+                            <svg class="w-12 h-12 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" aria-hidden="true">
+                                <path vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                            </svg>
+                            <h3 class="mt-2 text-sm font-medium text-gray-900">No current bookings</h3>
+                            <p class="mt-1 text-sm text-gray-500">Join a room at
+                                <a class="underline" href="/lobby">/lobby</a>
+                                or find a partner at
+                                <a class="underline" href="/match">/match</a>.
+                            </p>
+                        </div>
+                    </div>`
+            } else {
+                room += `
+        <div class="flex flex-col">
+            <div class="grid px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+                <ul role="list" id="lobbyrooms" class="grid grid-cols-1 gap-6 pt-6 sm:grid-cols-2 lg:grid-cols-3">
+        `
+                for (let i = 0; i < result['rooms'].length; i++) {
+                    creatorMMR = result['rooms'][i]['creator'].mmr
+                    joinedMMR = 0
+                    joinedCount = 0
+                    for (let j = 0; j < result['rooms'][i]['joined'].length; j++) {
+                        joinedMMR += result['rooms'][i]['joined'][j].mmr
+                        joinedCount += 1
+                    }
+                    totalMMR = creatorMMR + joinedMMR
+                    averageMMR = totalMMR / (joinedCount + 1)
+                    var startDate = moment(result['rooms'][i]['filter'].startDate).format('MMM DD h:mm A')
+                    var endDate = moment(result['rooms'][i]['filter'].endDate).format('MMM DD h:mm A')
+                    slots = calculateSlots(result['rooms'][i])
+                    room += `<li class="col-span-1 bg-white divide-y divide-gray-200 rounded-lg shadow">
+                        <div class="flex items-center justify-between w-full p-6 space-x-6">
+                            <div class="flex-1 truncate">
+                                <div class="flex flex-wrap items-center ">
+                                    <h3 class="pr-1 text-sm font-medium text-gray-900 truncate">`+ result['rooms'][i]['creator'].name + ` (` + slots + `/` + result['rooms'][i]['filter'].roomSize + `)</h3>
+                                    <span class="flex-shrink-0 inline-block px-2 py-0.5 text-green-800 text-xs font-medium bg-green-100 rounded-full">`+ result['rooms'][i]['filter'].activity + `</span>
+                                    <span class="flex-shrink-0 inline-block px-2 py-0.5 text-purple-800 text-xs font-medium bg-purple-100 rounded-full">Rating `+ averageMMR + `</span>
+                                </div>
+                                <span class="flex-shrink-0 inline-block px-2 py-0.5 text-red-800 text-xs font-medium bg-red-100 rounded-full">`+ result['rooms'][i]['filter'].locations + `</span>
+                                <p class="mt-1 text-sm text-gray-500 truncate">Starts on `+ startDate + `</p>
+                                <p class="mt-1 text-sm text-gray-500 truncate">Ends on `+ endDate + `</p>
+                            </div>
+                            <img class="flex-shrink-0 w-10 h-10 bg-gray-300 rounded-full"
+                                src="`+ getLogo(result['rooms'][i]['filter']['activity']) + `" alt="">
+                        </div>
+                        <div>
+                            <div class="flex -mt-px divide-x divide-gray-200">
+                                <div class="flex flex-1 w-0">
+                                    <a href="#" onclick="openModal('`+ result['rooms'][i]['_id'] + `')"
+                                        class="relative inline-flex items-center justify-center flex-1 w-0 py-4 -mr-px text-sm font-medium text-gray-700 border border-transparent rounded-bl-lg hover:text-gray-500">
+                                        <!-- Heroicon name: solid/mail -->
+                                        <svg class="w-5 h-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                                        </svg>
+                                        <span class="ml-3">Room Details</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </li>`;
+                }
+
+                room += `
+                    </ul>
+                </div>
+            </div>
+            `
+            }
+
+            document.getElementById('matchmake-section').innerHTML = room;
+        })
+        .catch(error => console.log('error', error));
+
+    function calculateSlots(room) {
+        joined = room['joined'].length
+        return 1 + joined
+    }
+</script>
+{% endblock %}

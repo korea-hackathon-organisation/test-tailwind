@@ -1,0 +1,546 @@
+{% extends "base.html" %}
+{% block body %}
+<style>
+    .autocomplete {
+        /*the container must be positioned relative:*/
+        position: relative;
+        display: inline-block;
+    }
+
+    input {
+        border: 1px solid transparent;
+        background-color: #f1f1f1;
+        padding: 10px;
+    }
+
+    input[type=text] {
+        background-color: #f1f1f1;
+        width: 100%;
+    }
+
+    input[type=submit] {
+        background-color: DodgerBlue;
+        color: #fff;
+    }
+
+    .autocomplete-items {
+        position: absolute;
+        border: 1px solid #d4d4d4;
+        border-bottom: none;
+        border-top: none;
+        z-index: 99;
+        /*position the autocomplete items to be the same width as the container:*/
+        top: 100%;
+        left: 0;
+        right: 0;
+        font-size: 0.875rem;
+    }
+
+    .autocomplete-items div {
+        padding: 10px;
+        cursor: pointer;
+        background-color: #fff;
+        border-bottom: 1px solid #d4d4d4;
+    }
+
+    .autocomplete-items div:hover {
+        /*when hovering an item:*/
+        background-color: #e9e9e9;
+    }
+
+    .autocomplete-active {
+        /*when navigating through the items using the filterow keys:*/
+        background-color: DodgerBlue !important;
+        color: #ffffff;
+    }
+</style>
+<div class="min-h-screen bg-gray-700">
+    <div class="flex flex-col min-h-screen bg-gray-700">
+        <!-- Page heading -->
+        <div class="bg-gray-800 ">
+            <header class="py-8 md:mt-16">
+                <div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8 xl:flex xl:items-center xl:justify-between">
+                    <div class="flex-1 min-w-0">
+                        <h1 class="mt-2 text-2xl font-bold leading-7 text-white sm:text-3xl sm:truncate">Zainul Ariffin
+                        </h1>
+                        <div class="flex flex-wrap gap-3 pt-3 mt-1 sm:mt-0" id="badgeNav">
+
+                        </div>
+                    </div>
+                    <div class="flex mt-5 xl:mt-0 xl:ml-4">
+                        <form>
+                            <div class="flex">
+                                <label for="search-dropdown"
+                                    class="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-gray-300">Your
+                                    Email</label>
+                                <button id="dropdown-button" data-dropdown-toggle="dropdown"
+                                    class="flex-shrink-0 z-10 inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-900 bg-gray-100 border border-gray-300 rounded-l-lg hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-white dark:border-gray-600"
+                                    type="button">location</button>
+                                <div id="dropdown"
+                                    class="z-10 hidden bg-white divide-y divide-gray-100 rounded shadow w-44 dark:bg-gray-700"
+                                    data-popper-reference-hidden="" data-popper-escaped="" data-popper-placement="top"
+                                    style="position: absolute; inset: auto auto 0px 0px; margin: 0px; transform: translate3d(897px, 5637px, 0px);">
+                                    <ul class="py-1 text-sm text-gray-700 dark:text-gray-200"
+                                        aria-labelledby="dropdown-button">
+                                        <li>
+                                            <button type="button" id="locationFilter"
+                                                onclick="categoryClick('location')"
+                                                class="inline-flex w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">location</button>
+                                        </li>
+                                        <li>
+                                            <button type="button" id="sportsFilter" onclick="categoryClick('sport')"
+                                                class="inline-flex w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">sport</button>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="relative w-full">
+                                    <input type="search" id="search-dropdown"
+                                        class="block p-2.5 w-full z-20 text-sm text-gray-900 bg-gray-50 rounded-r-lg border-l-gray-50 border-l-2 border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-l-gray-700  dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
+                                        placeholder="Enter filter" required>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </header>
+        </div>
+
+        <div class="flex flex-col pb-24">
+            <!-- <div class="grid px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+                MAP
+            </div> -->
+            <div class="grid px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+                <ul role="list" id="lobbyrooms" class="grid grid-cols-1 gap-6 pt-6 sm:grid-cols-2 lg:grid-cols-3">
+
+
+
+
+                    <!-- More people... -->
+                </ul>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+<script>
+    var dropdown = document.getElementById('dropdown')
+    dropdown.addEventListener('click', function (event) {
+        dropdown.classList.add('hidden')
+    })
+    room = `<li class="col-span-1 bg-white divide-y divide-gray-200 rounded-lg shadow">
+                        <div class="p-12 text-center">
+                            <h3 class="text-sm font-medium text-gray-900">Make a booking</h3>
+                            <p class="mt-1 text-sm text-gray-500">Play with friends or public</p>
+                            <div class="mt-4">
+                                <button type="button" onclick="location.href='/create';"
+                                    class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    <!-- Heroicon name: solid/plus -->
+                                    <svg class="w-5 h-5 mr-2 -ml-1" xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fill-rule="evenodd"
+                                            d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                    New Project
+                                </button>
+                            </div>
+                        </div>
+                    </li>`;
+
+    filterQuery = { "activity": [], "locations": [] }
+
+    var myHeaders = new Headers();
+    myHeaders.append("Cookie", "csrftoken=QR23xx5TxOqewhyR3DmwfFfj50EvtQ8CRjn1PhJ5Q7jEzngTqbGoaMbPO3A8Vk6f");
+
+    var requestOptions = {
+        method: 'GET',
+        headers: myHeaders,
+        redirect: 'follow'
+    };
+    function getLogo(activity) {
+        if (activity == "soccer") {
+            return "https://aux.iconspalace.com/uploads/football-icon-256-1281892144.png"
+        }
+        else if (activity == "badminton") {
+            return "https://cdn-icons-png.flaticon.com/512/447/447840.png"
+        }
+    }
+    function populateLobby() {
+        fetch("/getAllFacilities", requestOptions)
+            .then(response => response.json())
+            .then(result => {
+                for (let i = 0; i < result['rooms'].length; i++) {
+                    creatorMMR = result['rooms'][i]['creator'].mmr
+                    joinedMMR = 0
+                    joinedCount = 0
+                    for (let j = 0; j < result['rooms'][i]['joined'].length; j++) {
+                        joinedMMR += result['rooms'][i]['joined'][j].mmr
+                        joinedCount += 1
+                    }
+                    totalMMR = creatorMMR + joinedMMR
+                    averageMMR = totalMMR / (joinedCount + 1)
+                    var startDate = moment(result['rooms'][i]['filter'].startDate).format('MMM DD h:mm A')
+                    var endDate = moment(result['rooms'][i]['filter'].endDate).format('MMM DD h:mm A')
+                    slots = calculateSlots(result['rooms'][i])
+                    room += `<li class="col-span-1 bg-white divide-y divide-gray-200 rounded-lg shadow">
+                        <div class="flex items-center justify-between w-full p-6 space-x-6">
+                            <div class="flex-1 truncate">
+                                <div class="flex flex-wrap items-center ">
+                                    <h3 class="pr-1 text-sm font-medium text-gray-900 truncate">`+ result['rooms'][i]['creator'].name + ` (` + slots + `/` + result['rooms'][i]['filter'].roomSize + `)</h3>
+                                    <span class="flex-shrink-0 inline-block px-2 py-0.5 text-green-800 text-xs font-medium bg-green-100 rounded-full">`+ result['rooms'][i]['filter'].activity + `</span>
+                                    <span class="flex-shrink-0 inline-block px-2 py-0.5 text-purple-800 text-xs font-medium bg-purple-100 rounded-full">Rating `+ averageMMR + `</span>
+                                </div>
+                                <span class="flex-shrink-0 inline-block px-2 py-0.5 text-red-800 text-xs font-medium bg-red-100 rounded-full">`+ result['rooms'][i]['filter'].locations + `</span>
+                                <p class="mt-1 text-sm text-gray-500 truncate">Starts on `+ startDate + `</p>
+                                <p class="mt-1 text-sm text-gray-500 truncate">Ends on `+ endDate + `</p>
+                            </div>
+                            <img class="flex-shrink-0 w-10 h-10 bg-gray-300 rounded-full"
+                                src="`+ getLogo(result['rooms'][i]['filter']['activity']) + `" alt="">
+                        </div>
+                        <div>
+                            <div class="flex -mt-px divide-x divide-gray-200">
+                                <div class="flex flex-1 w-0" onclick="joinroom('`+ result['rooms'][i]['_id'] + `')">
+                                    <a href="#"
+                                        class="relative inline-flex items-center justify-center flex-1 w-0 py-4 -mr-px text-sm font-medium text-gray-700 border border-transparent rounded-bl-lg hover:text-gray-500">
+                                        <!-- Heroicon name: solid/mail -->
+                                        <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path
+                                                d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                            <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                                        </svg>
+                                        <span class="ml-3">Join Room</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </li>`;
+                }
+                document.getElementById('lobbyrooms').innerHTML = room;
+            })
+            .catch(error => console.log('error', error));
+    }
+
+    populateLobby();
+
+    filter = [];
+    filterLocation = [];
+    filterSports = ['soccer', 'tennis', 'table_tennis', 'badminton'];
+
+    var myHeaders2 = new Headers();
+    myHeaders2.append("Cookie", "csrftoken=QR23xx5TxOqewhyR3DmwfFfj50EvtQ8CRjn1PhJ5Q7jEzngTqbGoaMbPO3A8Vk6f");
+
+    var requestOptions2 = {
+        method: 'GET',
+        headers: myHeaders2,
+        redirect: 'follow'
+    };
+
+    function autocomplete(inp) {
+        /*the autocomplete function takes two arguments,
+        the text field element and an filteray of possible autocompleted values:*/
+        var currentFocus;
+        /*execute a function when someone writes in the text field:*/
+        inp.addEventListener("input", function (e) {
+            var a, b, i, val = this.value;
+            /*close any already open lists of autocompleted values*/
+            closeAllLists();
+            if (!val) { return false; }
+            currentFocus = -1;
+            /*create a DIV element that will contain the items (values):*/
+            a = document.createElement("DIV");
+            a.setAttribute("id", this.id + "autocomplete-list");
+            a.setAttribute("class", "autocomplete-items absolute max-h-72 overflow-auto");
+            /*append the DIV element as a child of the autocomplete container:*/
+            this.parentNode.appendChild(a);
+            /*for each item in the filteray...*/
+            for (i = 0; i < filter.length; i++) {
+                /*check if the item starts with the same letters as the text field value:*/
+                if (filter[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
+                    /*create a DIV element for each matching element:*/
+                    b = document.createElement("DIV");
+                    /*make the matching letters bold:*/
+                    b.innerHTML = "<strong>" + filter[i].substr(0, val.length) + "</strong>";
+                    b.innerHTML += filter[i].substr(val.length);
+                    /*insert a input field that will hold the current filteray item's value:*/
+                    b.innerHTML += "<input type='hidden' value='" + filter[i] + "'>";
+                    /*execute a function when someone clicks on the item value (DIV element):*/
+                    b.addEventListener("click", function (e) {
+                        /*insert the value for the autocomplete text field:*/
+                        inp.value = this.getElementsByTagName("input")[0].value;
+                        /*close the list of autocompleted values,
+                        (or any other open lists of autocompleted values:*/
+                        closeAllLists();
+                    });
+                    a.appendChild(b);
+                }
+            }
+        });
+        /*execute a function presses a key on the keyboard:*/
+        inp.addEventListener("keydown", function (e) {
+            var x = document.getElementById(this.id + "autocomplete-list");
+            if (x) x = x.getElementsByTagName("div");
+            if (e.keyCode == 40) {
+                /*If the filterow DOWN key is pressed,
+                increase the currentFocus variable:*/
+                currentFocus++;
+                /*and and make the current item more visible:*/
+                addActive(x);
+            } else if (e.keyCode == 38) { //up
+                /*If the filterow UP key is pressed,
+                decrease the currentFocus variable:*/
+                currentFocus--;
+                /*and and make the current item more visible:*/
+                addActive(x);
+            } else if (e.keyCode == 13) {
+                /*If the ENTER key is pressed, prevent the form from being submitted,*/
+                e.preventDefault();
+                if (currentFocus > -1) {
+                    /*and simulate a click on the "active" item:*/
+                    if (x) x[currentFocus].click();
+                }
+            }
+        });
+        function addActive(x) {
+            /*a function to classify an item as "active":*/
+            if (!x) return false;
+            /*start by removing the "active" class on all items:*/
+            removeActive(x);
+            if (currentFocus >= x.length) currentFocus = 0;
+            if (currentFocus < 0) currentFocus = (x.length - 1);
+            /*add class "autocomplete-active":*/
+            x[currentFocus].classList.add("autocomplete-active");
+        }
+        function removeActive(x) {
+            /*a function to remove the "active" class from all autocomplete items:*/
+            for (var i = 0; i < x.length; i++) {
+                x[i].classList.remove("autocomplete-active");
+            }
+        }
+        function closeAllLists(elmnt) {
+            /*close all autocomplete lists in the document,
+            except the one passed as an argument:*/
+            var x = document.getElementsByClassName("autocomplete-items");
+            for (var i = 0; i < x.length; i++) {
+                if (elmnt != x[i] && elmnt != inp) {
+                    x[i].parentNode.removeChild(x[i]);
+                }
+            }
+        }
+        /*execute a function when someone clicks in the document:*/
+        document.addEventListener("click", function (e) {
+            closeAllLists(e.target);
+        });
+        inp.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                insertFilter(document.getElementById("search-dropdown").value, document.getElementById('dropdown-button').innerHTML);
+            }
+        })
+    }
+
+
+    fetch("/getAllLocation", requestOptions2)
+        .then(response => response.json())
+        .then(result => {
+            filter = result;
+            filterLocation = result
+            autocomplete(document.getElementById("search-dropdown"));
+        })
+        .catch(error => console.log('error', error));
+
+    function categoryClick(category) {
+        if (category == 'location') {
+            filter = filterLocation
+        }
+        else {
+            filter = filterSports
+        }
+        document.getElementById('dropdown-button').innerHTML = category
+    }
+
+    function joinroom(roomid) {
+        var myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+        myHeaders.append("Cookie", "csrftoken=QR23xx5TxOqewhyR3DmwfFfj50EvtQ8CRjn1PhJ5Q7jEzngTqbGoaMbPO3A8Vk6f");
+
+        var raw = JSON.stringify({
+            "userID": "6349c0439218286ad81f6575",
+            "roomID": roomid
+        });
+
+        var requestOptions = {
+            method: 'POST',
+            headers: myHeaders,
+            body: raw,
+            redirect: 'follow'
+        };
+
+        fetch("/joinroom", requestOptions)
+            .then(response => response.text())
+            .then(result => {
+                console.log(result.substring(0, 6))
+                if (result.substring(0, 6) == "Failed") {
+                    alert(result)
+                }
+                else {
+                    alert(result);
+                    //refresh page
+                    location.reload()
+                }
+
+
+            })
+            .catch(error => alert(error));
+    }
+
+    function calculateSlots(room) {
+        joined = room['joined'].length
+        return 1 + joined
+    }
+
+    function insertFilter(filterName, filterType) {
+        console.log(filter)
+        if (filter.includes(filterName)) {
+            // default indigo
+            color = ''
+            if (filterType == "sport") {
+                filterQuery['activity'].push(filterName)
+                color = 'green'
+            } else if (filterType == "location") {
+                filterQuery['locations'].push(filterName)
+                color = 'red'
+            }
+            filterLobby(filterQuery)
+            currentHTML = document.getElementById('badgeNav').innerHTML
+            document.getElementById('badgeNav').innerHTML = currentHTML +
+                `<span id="` + filterName + `" value="` + filterType + `"
+                class="inline-flex rounded-full items-center py-0.5 pl-2.5 pr-1 text-sm font-medium bg-`+ color + `-100 text-` + color + `-700">
+                `+ filterName + `
+                <button type="button" onclick="removeBadge('`+ filterName + `','` + filterType + `')"                   
+                    class="flex-shrink-0 ml-0.5 h-4 w-4 rounded-full inline-flex items-center justify-center text-`+ color + `-400 hover:bg-` + color + `-200 hover:text-` + color + `-500 focus:outline-none focus:bg-` + color + `-500 focus:text-white">
+                    <span class="sr-only">Remove large option</span>
+                    <svg class="w-2 h-2" stroke="currentColor" fill="none" viewBox="0 0 8 8">
+                        <path stroke-linecap="round" stroke-width="1.5" d="M1 1l6 6m0-6L1 7" />
+                    </svg>
+                </button>
+            </span>`
+        }
+
+    }
+
+    function removeBadge(filterName, filterType) {
+        console.log(filterName)
+        console.log(filterType)
+        console.log(filterQuery)
+        if (filterType == "sport") {
+            const index = filterQuery['activity'].indexOf(filterName);
+            if (index > -1) { // only splice array when item is found
+                filterQuery['activity'].splice(index, 1); // 2nd parameter means remove one item only
+            }
+        } else if (filterType == "location") {
+            const index = filterQuery['locations'].indexOf(filterName);
+            if (index > -1) { // only splice array when item is found
+                filterQuery['locations'].splice(index, 1); // 2nd parameter means remove one item only
+            }
+        }
+        filterLobby(filterQuery);
+        document.getElementById(filterName).remove();
+    }
+
+    function filterLobby(filterQuery) {
+        console.log(filterQuery)
+        query = structuredClone(filterQuery)
+        if (query['locations'].length == 0) {
+            delete query['locations']
+        }
+        if (query['activity'].length == 0) {
+            delete query['activity']
+        }
+        var myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+        myHeaders.append("Cookie", "csrftoken=QR23xx5TxOqewhyR3DmwfFfj50EvtQ8CRjn1PhJ5Q7jEzngTqbGoaMbPO3A8Vk6f");
+
+        var raw = JSON.stringify(query);
+
+        var requestOptions = {
+            method: 'POST',
+            headers: myHeaders,
+            body: raw,
+            redirect: 'follow'
+        };
+
+        fetch("/filterFacilities", requestOptions)
+            .then(response => response.json())
+            .then(result => {
+                room = `<li class="col-span-1 bg-white divide-y divide-gray-200 rounded-lg shadow">
+                        <div class="p-6 text-center">
+                            <h3 class="text-sm font-medium text-gray-900">Make a booking</h3>
+                            <p class="mt-1 text-sm text-gray-500">Play with friends or public</p>
+                            <div class="mt-4">
+                                <button type="button" onclick="location.href='/create';"
+                                    class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    <!-- Heroicon name: solid/plus -->
+                                    <svg class="w-5 h-5 mr-2 -ml-1" xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fill-rule="evenodd"
+                                            d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                    New Project
+                                </button>
+                            </div>
+                        </div>
+                    </li>`;
+                for (let i = 0; i < result['rooms'].length; i++) {
+                    creatorMMR = result['rooms'][i]['creator'].mmr
+                    joinedMMR = 0
+                    joinedCount = 0
+                    for (let j = 0; j < result['rooms'][i]['joined'].length; j++) {
+                        joinedMMR += result['rooms'][i]['joined'][j].mmr
+                        joinedCount += 1
+                    }
+                    totalMMR = creatorMMR + joinedMMR
+                    averageMMR = totalMMR / (joinedCount + 1)
+                    slots = calculateSlots(result['rooms'][i])
+                    room += `<li class="col-span-1 bg-white divide-y divide-gray-200 rounded-lg shadow">
+                        <div class="flex items-center justify-between w-full p-6 space-x-6">
+                            <div class="flex-1 truncate">
+                                <div class="flex items-center space-x-3">
+                                    <h3 class="text-sm font-medium text-gray-900 truncate">`+ result['rooms'][i]['creator'].name + ` (` + slots + `/` + result['rooms'][i]['filter'].roomSize + `)</h3>
+                                    <span class="flex-shrink-0 inline-block px-2 py-0.5 text-green-800 text-xs font-medium bg-green-100 rounded-full">`+ result['rooms'][i]['filter'].activity + `</span>
+                                    <span class="flex-shrink-0 inline-block px-2 py-0.5 text-purple-800 text-xs font-medium bg-purple-100 rounded-full">Rating `+ result['rooms'][i]['creator'].mmr + `</span>
+                                </div>
+                                <span class="flex-shrink-0 inline-block px-2 py-0.5 text-red-800 text-xs font-medium bg-red-100 rounded-full">`+ result['rooms'][i]['filter'].locations + `</span>
+                                <p class="mt-1 text-sm text-gray-500 truncate">`+ result['rooms'][i]['filter'].startDate + `</p>
+                                <p class="mt-1 text-sm text-gray-500 truncate">`+ result['rooms'][i]['filter'].endDate + `</p>
+                            </div>
+                            <img class="flex-shrink-0 w-10 h-10 bg-gray-300 rounded-full"
+                                src="https://cdn-icons-png.flaticon.com/512/447/447840.png" alt="">
+                        </div>
+                        <div>
+                            <div class="flex -mt-px divide-x divide-gray-200">
+                                <div class="flex flex-1 w-0">
+                                    <a href="#"
+                                        class="relative inline-flex items-center justify-center flex-1 w-0 py-4 -mr-px text-sm font-medium text-gray-700 border border-transparent rounded-bl-lg hover:text-gray-500">
+                                        <!-- Heroicon name: solid/mail -->
+                                        <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path
+                                                d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                            <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                                        </svg>
+                                        <span class="ml-3">Join Room</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </li>`;
+                }
+                document.getElementById('lobbyrooms').innerHTML = room;
+            })
+            .catch(error => console.log('error', error));
+    }
+
+</script>
+{% endblock %}
